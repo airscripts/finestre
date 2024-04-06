@@ -1,4 +1,4 @@
-﻿DesktopCount = 4
+﻿﻿DesktopCount = 4
 CurrentDesktop = 1
 
 mapDesktopsFromRegistry() {
@@ -12,9 +12,9 @@ mapDesktopsFromRegistry() {
     if (CurrentDesktopId) {
       IdLength := StrLen(CurrentDesktopId)
     }
- }
+  }
 
-  Read, DesktopList, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops, VirtualDesktopIDs
+  RegRead, DesktopList, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops, VirtualDesktopIDs
 
   if (DesktopList) {
     DesktopListLength := StrLen(DesktopList)
