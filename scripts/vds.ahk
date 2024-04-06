@@ -2,86 +2,86 @@
 CurrentDesktop = 1
 
 mapDesktopsFromRegistry() {
- global CurrentDesktop, DesktopCount
- IdLength := 32
- SessionId := getSessionId()
+  global CurrentDesktop, DesktopCount
+  IdLength := 32
+  SessionId := getSessionId()
 
- if (SessionId) {
-  RegRead, CurrentDesktopId, HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SessionInfo\%SessionId%\VirtualDesktops, CurrentVirtualDesktop
-  
-  if (CurrentDesktopId) {
-   IdLength := StrLen(CurrentDesktopId)
+  if (SessionId) {
+    RegRead, CurrentDesktopId, HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SessionInfo\%SessionId%\VirtualDesktops, CurrentVirtualDesktop
+    
+    if (CurrentDesktopId) {
+      IdLength := StrLen(CurrentDesktopId)
+    }
+ }
+
+  Read, DesktopList, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops, VirtualDesktopIDs
+
+  if (DesktopList) {
+    DesktopListLength := StrLen(DesktopList)
+    DesktopCount := DesktopListLength / IdLength
   }
- }
-
- RegRead, DesktopList, HKEY_CURRENT_USER, SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops, VirtualDesktopIDs
-
- if (DesktopList) {
-  DesktopListLength := StrLen(DesktopList)
-  DesktopCount := DesktopListLength / IdLength
- }
  
- else {
-  DesktopCount := 1
- }
-
- i := 0
-
- while (CurrentDesktopId and i < DesktopCount) {
-  StartPos := (i * IdLength) + 1
-  DesktopIter := SubStr(DesktopList, StartPos, IdLength)
-  OutputDebug, The iterator is pointing at %DesktopIter% and count is %i%.
- 
-  if (DesktopIter = CurrentDesktopId) {
-   CurrentDesktop := i + 1
-   OutputDebug, Current desktop number is %CurrentDesktop% with an ID of %DesktopIter%.
-   break
+  else {
+    DesktopCount := 1
   }
+
+  i := 0
+
+  while (CurrentDesktopId and i < DesktopCount) {
+    StartPos := (i * IdLength) + 1
+    DesktopIter := SubStr(DesktopList, StartPos, IdLength)
+    OutputDebug, The iterator is pointing at %DesktopIter% and count is %i%.
   
-  i++
- }
+    if (DesktopIter = CurrentDesktopId) {
+      CurrentDesktop := i + 1
+      OutputDebug, Current desktop number is %CurrentDesktop% with an ID of %DesktopIter%.
+      break
+    }
+    
+    i++
+  }
 }
 
 getSessionId() {
- ProcessId := DllCall("GetCurrentProcessId", "UInt")
- 
- if ErrorLevel {
-  OutputDebug, Error getting current process id: %ErrorLevel%
-  return
- }
+  ProcessId := DllCall("GetCurrentProcessId", "UInt")
+  
+  if ErrorLevel {
+    OutputDebug, Error getting current process id: %ErrorLevel%
+    return
+  }
 
- OutputDebug, Current Process Id: %ProcessId%
- DllCall("ProcessIdToSessionId", "UInt", ProcessId, "UInt*", SessionId)
- 
- if ErrorLevel {
-  OutputDebug, Error getting session id: %ErrorLevel%
-  return
- }
+  OutputDebug, Current Process Id: %ProcessId%
+  DllCall("ProcessIdToSessionId", "UInt", ProcessId, "UInt*", SessionId)
+  
+  if ErrorLevel {
+    OutputDebug, Error getting session id: %ErrorLevel%
+    return
+  }
 
- OutputDebug, Current Session Id: %SessionId%
- return SessionId
+  OutputDebug, Current Session Id: %SessionId%
+  return SessionId
 }
 
 switchDesktopByNumber(targetDesktop) {
- global CurrentDesktop, DesktopCount
+  global CurrentDesktop, DesktopCount
+  mapDesktopsFromRegistry()
 
- mapDesktopsFromRegistry()
- if (targetDesktop > DesktopCount || targetDesktop < 1) {
-  OutputDebug, [invalid] target: %targetDesktop% current: %CurrentDesktop%
-  return
- }
+  if (targetDesktop > DesktopCount || targetDesktop < 1) {
+    OutputDebug, [invalid] target: %targetDesktop% current: %CurrentDesktop%
+    return
+  }
 
- while(CurrentDesktop < targetDesktop) {
-  Send ^#{Right}
-  CurrentDesktop++
-  OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
- }
+  while(CurrentDesktop < targetDesktop) {
+    Send ^#{Right}
+    CurrentDesktop++
+    OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
+  }
 
- while(CurrentDesktop > targetDesktop) {
-  Send ^#{Left}
-  CurrentDesktop--
-  OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
- }
+  while(CurrentDesktop > targetDesktop) {
+    Send ^#{Left}
+    CurrentDesktop--
+    OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
+  }
 }
 
 SetKeyDelay, 75
